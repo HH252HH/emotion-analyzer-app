@@ -1,0 +1,9 @@
+streamlit
+requests
+python-dotenv
+Pillow
+plotly
+assemblyai
+openai
+langdetect
+google-cloud-vision

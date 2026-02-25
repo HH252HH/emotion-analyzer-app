@@ -1,0 +1,114 @@
+<style>
+
+/* ============================= */
+/* 🎨 Google Font */
+/* ============================= */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap');
+
+html, body {
+    direction: rtl;
+    font-family: 'Cairo', sans-serif;
+}
+
+/* ============================= */
+/* 🌈 خلفية متدرجة ديناميكية محسنة */
+/* ============================= */
+.stApp {
+    position: relative;
+    z-index: 1;
+}
+
+.stApp::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(-45deg, #1f1c2c, #928dab, #16222a, #3a6073);
+    background-size: 400% 400%;
+    animation: gradientMove 18s ease infinite;
+    z-index: -1;
+}
+
+@keyframes gradientMove {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
+}
+
+/* ============================= */
+/* 💎 Glassmorphism حقيقي */
+/* ============================= */
+.glass-card {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 22px;
+    padding: 25px;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+    transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 15px 45px rgba(0,0,0,0.45);
+}
+
+/* ============================= */
+/* 🔥 أزرار Glow احترافية */
+/* ============================= */
+.stButton > button {
+    background: linear-gradient(90deg, #ff512f, #dd2476);
+    color: white;
+    border-radius: 30px;
+    padding: 12px 28px;
+    font-size: 17px;
+    font-weight: 600;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.stButton > button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255,0,120,0.7),
+                0 0 35px rgba(255,0,120,0.5);
+}
+
+/* ============================= */
+/* 📊 تحسين مخطط Plotly */
+/* ============================= */
+.plotly-graph-div {
+    border-radius: 18px !important;
+    overflow: hidden !important;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.35);
+}
+
+/* ============================= */
+/* 📂 File Uploader */
+/* ============================= */
+.stFileUploader {
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 18px;
+    border: 1px dashed rgba(255,255,255,0.4);
+}
+
+/* ============================= */
+/* 📱 Responsive */
+/* ============================= */
+@media (max-width: 768px) {
+
+    .glass-card {
+        padding: 15px;
+        border-radius: 16px;
+    }
+
+    .stButton > button {
+        width: 100%;
+        font-size: 15px;
+    }
+}
+
+</style>
