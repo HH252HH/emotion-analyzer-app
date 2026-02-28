@@ -248,13 +248,19 @@ def generate_diagnosis(image_emotion, audio_text):
 
             Provide a unified emotional diagnosis by combining facial expression and speech analysis.
 
-            Your response must include:
-            1) Clear explanation of the person's emotional state.
-            2) Interpretation of psychological condition.
-            3) If emotional state is negative → provide practical steps to improve mood and mental state.
-            4) If emotional state is positive → provide advice to maintain and strengthen well-being.
+            Your response must include clearly structured sections:
 
-            Response must be clear, supportive, and professional.
+            1) Emotional State Classification:
+               Explicitly state whether the emotional state is POSITIVE or NEGATIVE.
+
+            2) Emotional Explanation:
+               Explain the emotional and psychological condition clearly.
+
+            3) Guidance:
+               - If NEGATIVE → provide practical steps to improve mood and emotional stability.
+               - If POSITIVE → provide advice to maintain and strengthen well-being.
+
+            Make the response supportive, clear, and professional.
             """
 
         else:
@@ -266,11 +272,17 @@ def generate_diagnosis(image_emotion, audio_text):
 
             قدم تشخيصًا عاطفيًا موحدًا يجمع بين تحليل الصورة والصوت.
 
-            يجب أن يتضمن الرد:
-            1) شرح واضح للحالة العاطفية للشخص.
-            2) تفسير للحالة النفسية العامة.
-            3) إذا كانت الحالة سلبية → قدم خطوات عملية لتحسين المزاج والحالة النفسية.
-            4) إذا كانت الحالة إيجابية → قدم نصائح للحفاظ على التوازن النفسي وتعزيز الحالة الجيدة.
+            يجب أن يحتوي الرد على أقسام واضحة:
+
+            1) تصنيف الحالة العاطفية:
+               حدد بوضوح هل الحالة إيجابية أم سلبية.
+
+            2) شرح الحالة:
+               فسر الوضع العاطفي والنفسي بشكل مفهوم.
+
+            3) التوصيات:
+               - إذا كانت الحالة سلبية → قدم خطوات عملية لتحسين المزاج والاستقرار النفسي.
+               - إذا كانت الحالة إيجابية → قدم نصائح للحفاظ على التوازن وتعزيز الحالة الجيدة.
 
             اجعل الرد داعمًا وواضحًا واحترافيًا.
             """
