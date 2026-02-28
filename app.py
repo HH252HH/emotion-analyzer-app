@@ -20,17 +20,38 @@ from langdetect import detect
 
 # ==========================================================
 # 🔐 API Keys
-# ==========================================================
+# ===========================================================
+from dotenv import load_dotenv
+import os
+import streamlit as st
+from openai import OpenAI
+
+# تحميل .env محلياً فقط
 load_dotenv()
 
+# قراءة المفاتيح من البيئة (محلي أو سيرفر)
 HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 ASSEMBLYAI_API_KEY = os.getenv("ASSEMBLYAI_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-if not HUGGINGFACE_API_KEY or not ASSEMBLYAI_API_KEY or not OPENAI_API_KEY:
-    st.error("❌ تأكد من إضافة جميع مفاتيح API داخل ملف .env")
+# فحص المفاتيح بشكل احترافي
+missing_keys = []
+
+if not HUGGINGFACE_API_KEY:
+    missing_keys.append("HUGGINGFACE_API_KEY")
+
+if not ASSEMBLYAI_API_KEY:
+    missing_keys.append("ASSEMBLYAI_API_KEY")
+
+if not OPENAI_API_KEY:
+    missing_keys.append("OPENAI_API_KEY")
+
+if missing_keys:
+    st.error(f"❌ المفاتيح الناقصة: {', '.join(missing_keys)}")
+    st.info("💡 تأكد من إضافتها في Environment Variables في منصة النشر")
     st.stop()
 
+# إنشاء عميل OpenAI
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 # ==========================================================
