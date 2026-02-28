@@ -20,21 +20,13 @@ from langdetect import detect
 
 # ==========================================================
 # 🔐 API Keys
-# ===========================================================
-from dotenv import load_dotenv
-import os
-import streamlit as st
-from openai import OpenAI
-
-# تحميل .env محلياً فقط
+# ==========================================================
 load_dotenv()
 
-# قراءة المفاتيح من البيئة (محلي أو سيرفر)
 HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 ASSEMBLYAI_API_KEY = os.getenv("ASSEMBLYAI_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# فحص المفاتيح بشكل احترافي
 missing_keys = []
 
 if not HUGGINGFACE_API_KEY:
@@ -51,7 +43,6 @@ if missing_keys:
     st.info("💡 تأكد من إضافتها في Environment Variables في منصة النشر")
     st.stop()
 
-# إنشاء عميل OpenAI
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 # ==========================================================
@@ -123,11 +114,6 @@ h1 {
     font-size:40px;
     font-weight:800;
     margin-bottom:30px;
-}
-
-.plotly-graph-div {
-    border-radius:20px !important;
-    overflow:hidden;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -244,7 +230,7 @@ def analyze_audio(audio_bytes):
         return None, None
 
 # ==========================================================
-# 🌍 AUTO LANGUAGE DIAGNOSIS
+# 🌍 FINAL EMOTIONAL DIAGNOSIS (UPDATED ONLY HERE)
 # ==========================================================
 def generate_diagnosis(image_emotion, audio_text):
     try:
@@ -254,24 +240,39 @@ def generate_diagnosis(image_emotion, audio_text):
             detected_lang = "ar"
 
         if detected_lang == "en":
-            system_msg = "You are an expert emotional and psychological AI analyst."
-            final_prompt = f"""
-            Image emotion: {image_emotion}
-            Speech text: {audio_text}
+            system_msg = "You are a professional emotional and psychological AI analyst."
 
-            Provide a psychological analysis including likelihood of:
-            Anxiety - Stress - Depression
-            With simple practical recommendations.
+            final_prompt = f"""
+            Face emotion analysis: {image_emotion}
+            Speech content: {audio_text}
+
+            Provide a unified emotional diagnosis by combining facial expression and speech analysis.
+
+            Your response must include:
+            1) Clear explanation of the person's emotional state.
+            2) Interpretation of psychological condition.
+            3) If emotional state is negative → provide practical steps to improve mood and mental state.
+            4) If emotional state is positive → provide advice to maintain and strengthen well-being.
+
+            Response must be clear, supportive, and professional.
             """
-        else:
-            system_msg = "أنت خبير تحليل نفسي عاطفي احترافي."
-            final_prompt = f"""
-            العاطفة من الصورة: {image_emotion}
-            النص من الصوت: {audio_text}
 
-            قدم تحليلًا يتضمن احتمالية:
-            القلق - التوتر - الاكتئاب
-            مع توصيات عملية مبسطة.
+        else:
+            system_msg = "أنت خبير تحليل نفسي وعاطفي احترافي."
+
+            final_prompt = f"""
+            تحليل تعابير الوجه: {image_emotion}
+            محتوى الكلام: {audio_text}
+
+            قدم تشخيصًا عاطفيًا موحدًا يجمع بين تحليل الصورة والصوت.
+
+            يجب أن يتضمن الرد:
+            1) شرح واضح للحالة العاطفية للشخص.
+            2) تفسير للحالة النفسية العامة.
+            3) إذا كانت الحالة سلبية → قدم خطوات عملية لتحسين المزاج والحالة النفسية.
+            4) إذا كانت الحالة إيجابية → قدم نصائح للحفاظ على التوازن النفسي وتعزيز الحالة الجيدة.
+
+            اجعل الرد داعمًا وواضحًا واحترافيًا.
             """
 
         response = client.chat.completions.create(
@@ -314,7 +315,6 @@ if st.button("🚀 بدء التحليل الذكي"):
 
         progress.progress(100)
 
-        # ================= RESULTS =================
         st.markdown("<div class='neo-card'>", unsafe_allow_html=True)
         colA, colB = st.columns(2)
 
