@@ -1,9 +1,10 @@
 streamlit
 requests
 python-dotenv
-Pillow
+pillow
 plotly
 assemblyai
 openai
 langdetect
-google-cloud-vision
+librosa
+numpy
