@@ -1,6 +1,7 @@
+
 # ==========================================================
 # 🧠 Emotion AI Pro — NeuroVision (Ultra Dashboard Edition)
-# 🎯 تحليل شبه طبي + واجهة أسطورية + دعم عربي كامل
+# 🎯 نسخة محسنة UI/UX احترافية
 # ==========================================================
 
 import streamlit as st
@@ -33,84 +34,124 @@ if not all([HUGGINGFACE_API_KEY, ASSEMBLYAI_API_KEY, OPENAI_API_KEY]):
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 # ==========================================================
-# 🎨 تصميم احترافي
+# 🎨 إعداد الصفحة + تصميم متطور
 # ==========================================================
 st.set_page_config(page_title="NeuroVision", layout="wide")
 
 st.markdown("""
 <style>
-body {
-    direction: rtl;
-}
+body { direction: rtl; }
+
+/* خلفية متحركة */
 .stApp {
-    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #1c1c1c);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
 }
+
+/* أنيميشن الخلفية */
+@keyframes gradientBG {
+    0% {background-position:0% 50%;}
+    50% {background-position:100% 50%;}
+    100% {background-position:0% 50%;}
+}
+
+/* كروت زجاجية */
 .neo {
     background: rgba(255,255,255,0.05);
     border-radius: 20px;
-    padding: 25px;
-    backdrop-filter: blur(15px);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    padding: 20px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    transition: 0.3s;
 }
-h1 {text-align:center;}
+.neo:hover {
+    transform: translateY(-5px);
+}
+
+/* عنوان */
+.title {
+    text-align:center;
+    font-size:40px;
+    font-weight:bold;
+    color:white;
+}
+
+/* زر احترافي */
+.stButton>button {
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
+    color: white;
+    border-radius: 12px;
+    padding: 12px 25px;
+    font-size: 18px;
+    transition: 0.3s;
+}
+.stButton>button:hover {
+    transform: scale(1.05);
+}
+
+/* نص */
+h2, h3, h4, p, label {
+    color: white;
+}
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🧠 NeuroVision — تحليل عاطفي متقدم")
+st.markdown('<div class="title">🧠 NeuroVision — AI Emotion Dashboard</div>', unsafe_allow_html=True)
 
 # ==========================================================
-# 📥 الإدخال
+# 📥 Sidebar (تنظيم احترافي)
 # ==========================================================
-col1, col2 = st.columns(2)
+st.sidebar.header("⚙️ التحكم")
 
-with col1:
-    image_file = st.file_uploader("📷 صورة", type=["jpg","png"])
+st.sidebar.markdown("### 📥 إدخال البيانات")
 
-    # 📸 كاميرا مباشرة
-    camera_image = st.camera_input("📸 التقط صورة من الكاميرا")
-    if camera_image is not None:
-        image_file = camera_image
+image_file = st.sidebar.file_uploader("📷 رفع صورة", type=["jpg","png"])
+camera_image = st.sidebar.camera_input("📸 تصوير مباشر")
 
-with col2:
-    audio_file = st.file_uploader("🎤 صوت", type=["mp3","wav","m4a"])
+if camera_image is not None:
+    image_file = camera_image
 
-    st.info("🎤 بعد تسجيل الصوت سيتم تحميله تلقائيًا — قم برفعه هنا")
+audio_file = st.sidebar.file_uploader("🎤 رفع صوت", type=["mp3","wav","m4a"])
 
-    # 🎤 تسجيل صوت مباشر
-    st.components.v1.html("""
-    <script>
-    let mediaRecorder;
-    let audioChunks = [];
+st.sidebar.markdown("### 🎙 تسجيل صوت")
 
-    async function startRecording() {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
+st.sidebar.components.v1.html("""
+<script>
+let mediaRecorder;
+let audioChunks = [];
 
-        mediaRecorder.start();
+async function startRecording() {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.start();
 
-        mediaRecorder.ondataavailable = event => {
-            audioChunks.push(event.data);
-        };
+    mediaRecorder.ondataavailable = event => {
+        audioChunks.push(event.data);
+    };
 
-        mediaRecorder.onstop = () => {
-            const blob = new Blob(audioChunks, { type: 'audio/wav' });
-            const url = URL.createObjectURL(blob);
+    mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunks, { type: 'audio/wav' });
+        const url = URL.createObjectURL(blob);
 
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'recorded_audio.wav';
-            a.click();
-        };
-    }
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'recorded_audio.wav';
+        a.click();
+    };
+}
+function stopRecording() {
+    mediaRecorder.stop();
+}
+</script>
 
-    function stopRecording() {
-        mediaRecorder.stop();
-    }
-    </script>
+<button onclick="startRecording()">🎙 بدء</button>
+<button onclick="stopRecording()">⏹ إيقاف</button>
+""", height=120)
 
-    <button onclick="startRecording()">🎙 بدء التسجيل</button>
-    <button onclick="stopRecording()">⏹ إيقاف التسجيل</button>
-    """, height=150)
+st.sidebar.info("بعد التسجيل سيتم تحميل الصوت — ارفعه في الأعلى")
+
+run = st.sidebar.button("🚀 بدء التحليل")
 
 # ==========================================================
 # 📷 تحليل الصورة
@@ -124,7 +165,7 @@ def analyze_image(img):
     return requests.post(API_URL, headers=headers, data=img).json()
 
 # ==========================================================
-# 🎤 تحليل الصوت (احترافي)
+# 🎤 تحليل الصوت
 # ==========================================================
 def analyze_audio(audio_bytes):
     aai.settings.api_key = ASSEMBLYAI_API_KEY
@@ -159,7 +200,7 @@ def analyze_audio(audio_bytes):
             os.remove(path)
 
 # ==========================================================
-# 🧠 تحليل AI متقدم (شبه طبي)
+# 🧠 تحليل AI
 # ==========================================================
 def generate_diagnosis(emotion, text, tone):
 
@@ -192,7 +233,7 @@ def generate_diagnosis(emotion, text, tone):
     return res.choices[0].message.content
 
 # ==========================================================
-# 📊 رسم بياني عربي احترافي
+# 📊 الرسم البياني
 # ==========================================================
 def emotion_chart(emotions):
     labels = [e['label'] for e in emotions]
@@ -209,9 +250,9 @@ def emotion_chart(emotions):
 
     fig.update_layout(
         title="📊 نسب المشاعر",
-        xaxis_title="نوع الشعور",
-        yaxis_title="النسبة المئوية",
-        font=dict(family="Arial"),
+        xaxis_title="الشعور",
+        yaxis_title="النسبة",
+        template="plotly_dark"
     )
 
     return fig
@@ -219,63 +260,74 @@ def emotion_chart(emotions):
 # ==========================================================
 # 🚀 التشغيل
 # ==========================================================
-if st.button("🚀 تحليل متقدم"):
+if run:
 
     if image_file and audio_file:
 
-        with st.spinner("🧠 تحليل عميق جارٍ..."):
+        progress = st.progress(0)
 
-            img_bytes = image_file.getvalue()
-            aud_bytes = audio_file.getvalue()
+        progress.progress(20)
+        img_bytes = image_file.getvalue()
 
-            emotions = analyze_image(img_bytes)
-            text, tone = analyze_audio(aud_bytes)
+        progress.progress(40)
+        aud_bytes = audio_file.getvalue()
 
-            dominant = max(emotions, key=lambda x: x['score'])
+        progress.progress(60)
+        emotions = analyze_image(img_bytes)
 
-            diagnosis = generate_diagnosis(
-                dominant['label'], text, tone
-            )
+        progress.progress(75)
+        text, tone = analyze_audio(aud_bytes)
+
+        dominant = max(emotions, key=lambda x: x['score'])
+
+        progress.progress(90)
+        diagnosis = generate_diagnosis(
+            dominant['label'], text, tone
+        )
+
+        progress.progress(100)
 
         # ==================================================
-        # 🧠 لوحة التحكم الأسطورية
+        # 🧠 Dashboard
         # ==================================================
+        st.markdown("## 📊 لوحة التحكم")
 
-        st.markdown("## 🧠 لوحة التحليل المتقدمة")
+        col1, col2 = st.columns(2)
 
-        colA, colB = st.columns([1,1])
-
-        with colA:
+        with col1:
+            st.markdown('<div class="neo">', unsafe_allow_html=True)
             st.image(Image.open(BytesIO(img_bytes)))
-            st.metric("الحالة الأساسية", dominant['label'])
+            st.metric("الحالة", dominant['label'])
+            st.markdown('</div>', unsafe_allow_html=True)
 
-        with colB:
+        with col2:
+            st.markdown('<div class="neo">', unsafe_allow_html=True)
             st.plotly_chart(emotion_chart(emotions), use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 
         # ==================================================
-        # 🎤 تحليل الصوت التفصيلي
+        # 🎤 الصوت
         # ==================================================
-
         st.markdown("## 🎤 تحليل الصوت")
-        st.write(f"الطاقة: {tone['energy']:.4f}")
-        st.write(f"السرعة: {tone['tempo']:.2f}")
-        st.write(f"النبرة: {tone['pitch']:.2f}")
+
+        c1, c2, c3 = st.columns(3)
+        c1.metric("الطاقة", f"{tone['energy']:.4f}")
+        c2.metric("السرعة", f"{tone['tempo']:.2f}")
+        c3.metric("النبرة", f"{tone['pitch']:.2f}")
 
         # ==================================================
-        # 📋 نسب المشاعر
+        # 📋 التفاصيل
         # ==================================================
-
-        st.markdown("## 📊 تفاصيل دقيقة")
+        st.markdown("## 📊 تفاصيل المشاعر")
 
         for e in emotions:
-            st.write(f"{e['label']} → {round(e['score']*100,2)}%")
+            st.progress(e['score'], text=f"{e['label']} {round(e['score']*100,2)}%")
 
         # ==================================================
-        # 🧠 التحليل الذكي
+        # 🧠 التشخيص
         # ==================================================
-
-        st.markdown("## 🧠 التشخيص النفسي")
-        st.write(diagnosis)
+        st.markdown("## 🧠 التشخيص الذكي")
+        st.markdown(f"<div class='neo'>{diagnosis}</div>", unsafe_allow_html=True)
 
     else:
         st.warning("⚠ الرجاء إدخال صورة وصوت")
