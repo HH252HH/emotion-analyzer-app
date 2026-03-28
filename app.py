@@ -1,11 +1,8 @@
 # ==========================================================
-# 🧠 Emotion AI Pro — NeuroVision (Enterprise + Auto Language)
-# 🎨 Radical UI + Stable Fixes + AR/EN Support
+# 🧠 Emotion AI Pro — NeuroVision (Ultra Dashboard Edition)
+# 🎯 تحليل شبه طبي + واجهة أسطورية + دعم عربي كامل
 # ==========================================================
 
-# ==============================
-# 📦 Imports
-# ==============================
 import streamlit as st
 import requests
 import os
@@ -17,10 +14,6 @@ from openai import OpenAI
 from io import BytesIO
 import tempfile
 from langdetect import detect
-
-# ==============================
-# 📦 NEW (Tone Analysis)
-# ==============================
 import librosa
 import numpy as np
 
@@ -33,279 +26,213 @@ HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 ASSEMBLYAI_API_KEY = os.getenv("ASSEMBLYAI_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-missing_keys = []
-
-if not HUGGINGFACE_API_KEY:
-    missing_keys.append("HUGGINGFACE_API_KEY")
-
-if not ASSEMBLYAI_API_KEY:
-    missing_keys.append("ASSEMBLYAI_API_KEY")
-
-if not OPENAI_API_KEY:
-    missing_keys.append("OPENAI_API_KEY")
-
-if missing_keys:
-    st.error(f"❌ المفاتيح الناقصة: {', '.join(missing_keys)}")
-    st.info("💡 تأكد من إضافتها في Environment Variables في منصة النشر")
+if not all([HUGGINGFACE_API_KEY, ASSEMBLYAI_API_KEY, OPENAI_API_KEY]):
+    st.error("❌ تأكد من جميع مفاتيح API")
     st.stop()
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 # ==========================================================
-# 🎨 Page Config
+# 🎨 تصميم احترافي
 # ==========================================================
-st.set_page_config(
-    page_title="Emotion AI Pro — NeuroVision",
-    page_icon="🧠",
-    layout="wide"
-)
+st.set_page_config(page_title="NeuroVision", layout="wide")
 
-# ==========================================================
-# 🌌 UI Design
-# ==========================================================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;800&display=swap');
-
-html, body, [class*="css"] {
+body {
     direction: rtl;
-    font-family: 'Tajawal', sans-serif;
 }
-
 .stApp {
-    background: radial-gradient(circle at 20% 30%, #1a1a2e, #0f3460, #16213e);
-    background-size: 200% 200%;
-    animation: moveBG 12s ease infinite;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
 }
-
-@keyframes moveBG {
-    0% {background-position: 0% 50%;}
-    50% {background-position: 100% 50%;}
-    100% {background-position: 0% 50%;}
-}
-
-.neo-card {
+.neo {
     background: rgba(255,255,255,0.05);
-    border-radius: 25px;
-    padding: 30px;
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1);
-    box-shadow: 0 8px 40px rgba(0,0,0,0.4);
-    transition: 0.4s ease;
+    border-radius: 20px;
+    padding: 25px;
+    backdrop-filter: blur(15px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
 }
-
-.neo-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-}
-
-.stButton>button {
-    background: linear-gradient(135deg,#00c6ff,#0072ff);
-    color:white;
-    border:none;
-    padding:14px 35px;
-    border-radius:50px;
-    font-size:18px;
-    font-weight:600;
-    transition:0.3s;
-}
-
-.stButton>button:hover {
-    transform:scale(1.07);
-    box-shadow:0 0 25px #00c6ff;
-}
-
-h1 {
-    text-align:center;
-    font-size:40px;
-    font-weight:800;
-    margin-bottom:30px;
-}
-
-.plotly-graph-div {
-    border-radius:20px !important;
-    overflow:hidden;
-}
+h1 {text-align:center;}
 </style>
 """, unsafe_allow_html=True)
 
-# ==========================================================
-# 🧠 HEADER
-# ==========================================================
-st.title("🧠 Emotion AI Pro — NeuroVision")
+st.title("🧠 NeuroVision — تحليل عاطفي متقدم")
 
 # ==========================================================
-# 📥 INPUT SECTION
+# 📥 الإدخال
 # ==========================================================
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown("<div class='neo-card'>", unsafe_allow_html=True)
-    st.subheader("📷 تحليل تعابير الوجه")
-
-    image_option = st.radio(
-        "اختر مصدر الصورة:",
-        ["رفع صورة", "التقاط من الكاميرا"],
-        horizontal=True
-    )
-
-    image_bytes = None
-
-    if image_option == "رفع صورة":
-        uploaded_img = st.file_uploader("اختر صورة", type=["jpg", "png"])
-        if uploaded_img:
-            image_bytes = uploaded_img.getvalue()
-    else:
-        camera_img = st.camera_input("التقط صورة")
-        if camera_img:
-            image_bytes = camera_img.getvalue()
-
-    st.markdown("</div>", unsafe_allow_html=True)
+    image_file = st.file_uploader("📷 صورة", type=["jpg","png"])
 
 with col2:
-    st.markdown("<div class='neo-card'>", unsafe_allow_html=True)
-    st.subheader("🎤 تحليل نبرة الصوت")
-
-    audio_option = st.radio(
-        "اختر مصدر الصوت:",
-        ["رفع ملف صوتي", "تسجيل من الميكروفون"],
-        horizontal=True
-    )
-
-    audio_bytes = None
-
-    if audio_option == "رفع ملف صوتي":
-        uploaded_audio = st.file_uploader("اختر صوت", type=["mp3", "wav", "m4a"])
-        if uploaded_audio:
-            audio_bytes = uploaded_audio.getvalue()
-    else:
-        recorded_audio = st.audio_input("سجل صوتك")
-        if recorded_audio:
-            audio_bytes = recorded_audio.getvalue()
-
-    st.markdown("</div>", unsafe_allow_html=True)
+    audio_file = st.file_uploader("🎤 صوت", type=["mp3","wav","m4a"])
 
 # ==========================================================
-# 📷 IMAGE ANALYSIS (كما هو)
+# 📷 تحليل الصورة
 # ==========================================================
-def analyze_image(image_bytes):
-
-    try:
-        API_URL = "https://router.huggingface.co/hf-inference/models/trpakov/vit-face-expression"
-
-        headers = {
-            "Authorization": f"Bearer {HUGGINGFACE_API_KEY}",
-            "Content-Type": "application/octet-stream"
-        }
-
-        response = requests.post(API_URL, headers=headers, data=image_bytes, timeout=60)
-        result = response.json()
-
-        dominant = max(result, key=lambda x: x['score'])
-        return result, dominant
-
-    except Exception as e:
-        st.error(f"❌ خطأ: {e}")
-        return None, None
+def analyze_image(img):
+    API_URL = "https://router.huggingface.co/hf-inference/models/trpakov/vit-face-expression"
+    headers = {
+        "Authorization": f"Bearer {HUGGINGFACE_API_KEY}",
+        "Content-Type": "application/octet-stream"
+    }
+    return requests.post(API_URL, headers=headers, data=img).json()
 
 # ==========================================================
-# 🎤 AUDIO ANALYSIS (🔥 التغيير هنا فقط)
+# 🎤 تحليل الصوت (احترافي)
 # ==========================================================
 def analyze_audio(audio_bytes):
+    aai.settings.api_key = ASSEMBLYAI_API_KEY
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+        tmp.write(audio_bytes)
+        path = tmp.name
 
     try:
+        transcript = aai.Transcriber().transcribe(path)
+        text = transcript.text or ""
 
-        # 1️⃣ تحويل الصوت إلى نص
-        aai.settings.api_key = ASSEMBLYAI_API_KEY
+        y, sr = librosa.load(path, sr=None)
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
-            tmp.write(audio_bytes)
-            tmp_path = tmp.name
-
-        config = aai.TranscriptionConfig(
-            speech_models=["universal"]
-        )
-
-        transcript = aai.Transcriber().transcribe(tmp_path, config=config)
-
-        if transcript.status == aai.TranscriptStatus.error:
-            st.error(f"❌ فشل التفريغ: {transcript.error}")
-            return None, None
-
-        text = transcript.text or "لا يوجد نص."
-
-        # 2️⃣ تحليل نبرة الصوت
-        y, sr = librosa.load(tmp_path)
-
+        energy = float(np.mean(librosa.feature.rms(y=y)))
         tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
-        energy = np.mean(librosa.feature.rms(y=y))
 
         pitches, magnitudes = librosa.piptrack(y=y, sr=sr)
-        pitch = np.mean(pitches[magnitudes > np.median(magnitudes)])
+        valid = pitches[magnitudes > np.median(magnitudes)]
+        pitch = np.mean(valid) if len(valid) > 0 else 0
 
-        os.remove(tmp_path)
-
-        # 3️⃣ تصنيف النبرة
-        tone = ""
-
-        tone += "سريع، " if tempo > 120 else "بطيء، "
-        tone += "طاقة عالية، " if energy > 0.02 else "طاقة منخفضة، "
-        tone += "نبرة مرتفعة (توتر/فرح)" if pitch > 150 else "نبرة منخفضة (هدوء/حزن)"
+        tone = {
+            "energy": energy,
+            "tempo": tempo,
+            "pitch": pitch
+        }
 
         return text, tone
 
-    except Exception as e:
-        st.error(f"❌ خطأ في الصوت: {e}")
-        return None, None
+    finally:
+        if os.path.exists(path):
+            os.remove(path)
 
 # ==========================================================
-# 🌍 AI DIAGNOSIS (تم تعديل بسيط فقط)
+# 🧠 تحليل AI متقدم (شبه طبي)
 # ==========================================================
-def generate_diagnosis(image_emotion, audio_text):
+def generate_diagnosis(emotion, text, tone):
 
-    try:
-        try:
-            detected_lang = detect(audio_text)
-        except:
-            detected_lang = "ar"
+    prompt = f"""
+أنت نظام تحليل نفسي متقدم.
 
-        prompt = f"""
-Emotion: {image_emotion}
+المعطيات:
+- تعبير الوجه: {emotion}
+- النص: {text}
+- الطاقة: {tone['energy']}
+- السرعة: {tone['tempo']}
+- النبرة: {tone['pitch']}
 
-Speech:
-{audio_text}
+حلل بدقة شديدة وقدم:
+1. الحالة النفسية الأساسية
+2. نسبة كل شعور
+3. تفسير نفسي عميق
+4. احتمالات القلق أو التوتر
+5. توصيات دقيقة
+
+اكتب بالعربية.
 """
 
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7
-        )
+    res = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role":"user","content":prompt}],
+        temperature=0.7
+    )
 
-        return response.choices[0].message.content, detected_lang
-
-    except Exception as e:
-        st.error(f"❌ خطأ في OpenAI: {e}")
-        return None, None
+    return res.choices[0].message.content
 
 # ==========================================================
-# 🚀 START
+# 📊 رسم بياني عربي احترافي
 # ==========================================================
-if st.button("🚀 بدء التحليل الذكي"):
+def emotion_chart(emotions):
+    labels = [e['label'] for e in emotions]
+    values = [round(e['score']*100,2) for e in emotions]
 
-    if image_bytes and audio_bytes:
+    fig = go.Figure()
 
-        emotions, dominant = analyze_image(image_bytes)
-        text, tone = analyze_audio(audio_bytes)
+    fig.add_trace(go.Bar(
+        x=labels,
+        y=values,
+        text=[str(v)+"%" for v in values],
+        textposition='auto'
+    ))
 
-        diagnosis, lang = generate_diagnosis(
-            dominant["label"],
-            text + "\nTone: " + tone
-        )
+    fig.update_layout(
+        title="📊 نسب المشاعر",
+        xaxis_title="نوع الشعور",
+        yaxis_title="النسبة المئوية",
+        font=dict(family="Arial"),
+    )
 
-        st.image(Image.open(BytesIO(image_bytes)))
-        st.write("🎤 النبرة:", tone)
-        st.write("🧠 التحليل:", diagnosis)
+    return fig
+
+# ==========================================================
+# 🚀 التشغيل
+# ==========================================================
+if st.button("🚀 تحليل متقدم"):
+
+    if image_file and audio_file:
+
+        with st.spinner("🧠 تحليل عميق جارٍ..."):
+
+            img_bytes = image_file.getvalue()
+            aud_bytes = audio_file.getvalue()
+
+            emotions = analyze_image(img_bytes)
+            text, tone = analyze_audio(aud_bytes)
+
+            dominant = max(emotions, key=lambda x: x['score'])
+
+            diagnosis = generate_diagnosis(
+                dominant['label'], text, tone
+            )
+
+        # ==================================================
+        # 🧠 لوحة التحكم الأسطورية
+        # ==================================================
+
+        st.markdown("## 🧠 لوحة التحليل المتقدمة")
+
+        colA, colB = st.columns([1,1])
+
+        with colA:
+            st.image(Image.open(BytesIO(img_bytes)))
+            st.metric("الحالة الأساسية", dominant['label'])
+
+        with colB:
+            st.plotly_chart(emotion_chart(emotions), use_container_width=True)
+
+        # ==================================================
+        # 🎤 تحليل الصوت التفصيلي
+        # ==================================================
+
+        st.markdown("## 🎤 تحليل الصوت")
+        st.write(f"الطاقة: {tone['energy']:.4f}")
+        st.write(f"السرعة: {tone['tempo']:.2f}")
+        st.write(f"النبرة: {tone['pitch']:.2f}")
+
+        # ==================================================
+        # 📋 نسب المشاعر
+        # ==================================================
+
+        st.markdown("## 📊 تفاصيل دقيقة")
+
+        for e in emotions:
+            st.write(f"{e['label']} → {round(e['score']*100,2)}%")
+
+        # ==================================================
+        # 🧠 التحليل الذكي
+        # ==================================================
+
+        st.markdown("## 🧠 التشخيص النفسي")
+        st.write(diagnosis)
 
     else:
-        st.warning("⚠ يرجى إدخال صورة وصوت أولاً.")
+        st.warning("⚠ الرجاء إدخال صورة وصوت")
