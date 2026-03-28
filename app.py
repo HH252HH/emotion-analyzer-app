@@ -66,8 +66,51 @@ col1, col2 = st.columns(2)
 with col1:
     image_file = st.file_uploader("📷 صورة", type=["jpg","png"])
 
+    # 📸 كاميرا مباشرة
+    camera_image = st.camera_input("📸 التقط صورة من الكاميرا")
+    if camera_image is not None:
+        image_file = camera_image
+
 with col2:
     audio_file = st.file_uploader("🎤 صوت", type=["mp3","wav","m4a"])
+
+    st.info("🎤 بعد تسجيل الصوت سيتم تحميله تلقائيًا — قم برفعه هنا")
+
+    # 🎤 تسجيل صوت مباشر
+    st.components.v1.html("""
+    <script>
+    let mediaRecorder;
+    let audioChunks = [];
+
+    async function startRecording() {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+
+        mediaRecorder.start();
+
+        mediaRecorder.ondataavailable = event => {
+            audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(audioChunks, { type: 'audio/wav' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'recorded_audio.wav';
+            a.click();
+        };
+    }
+
+    function stopRecording() {
+        mediaRecorder.stop();
+    }
+    </script>
+
+    <button onclick="startRecording()">🎙 بدء التسجيل</button>
+    <button onclick="stopRecording()">⏹ إيقاف التسجيل</button>
+    """, height=150)
 
 # ==========================================================
 # 📷 تحليل الصورة
