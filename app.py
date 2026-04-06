@@ -18,12 +18,6 @@ from io import BytesIO
 import tempfile
 from langdetect import detect
 
-# ==============================
-# 📦 NEW (Tone Analysis)
-# ==============================
-import librosa
-import numpy as np
-
 # ==========================================================
 # 🔐 API Keys
 # ==========================================================
@@ -140,6 +134,7 @@ st.title("🧠 Emotion AI Pro — NeuroVision")
 col1, col2 = st.columns(2)
 
 with col1:
+
     st.markdown("<div class='neo-card'>", unsafe_allow_html=True)
     st.subheader("📷 تحليل تعابير الوجه")
 
@@ -155,6 +150,7 @@ with col1:
         uploaded_img = st.file_uploader("اختر صورة", type=["jpg", "png"])
         if uploaded_img:
             image_bytes = uploaded_img.getvalue()
+
     else:
         camera_img = st.camera_input("التقط صورة")
         if camera_img:
@@ -163,8 +159,9 @@ with col1:
     st.markdown("</div>", unsafe_allow_html=True)
 
 with col2:
+
     st.markdown("<div class='neo-card'>", unsafe_allow_html=True)
-    st.subheader("🎤 تحليل نبرة الصوت")
+    st.subheader("🎤 تحليل المشاعر الصوتية")
 
     audio_option = st.radio(
         "اختر مصدر الصوت:",
@@ -175,9 +172,13 @@ with col2:
     audio_bytes = None
 
     if audio_option == "رفع ملف صوتي":
-        uploaded_audio = st.file_uploader("اختر صوت", type=["mp3", "wav", "m4a"])
+        uploaded_audio = st.file_uploader(
+            "اختر صوت",
+            type=["mp3", "wav", "m4a"]
+        )
         if uploaded_audio:
             audio_bytes = uploaded_audio.getvalue()
+
     else:
         recorded_audio = st.audio_input("سجل صوتك")
         if recorded_audio:
@@ -186,11 +187,12 @@ with col2:
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ==========================================================
-# 📷 IMAGE ANALYSIS (كما هو)
+# 📷 IMAGE ANALYSIS
 # ==========================================================
 def analyze_image(image_bytes):
 
     try:
+
         API_URL = "https://router.huggingface.co/hf-inference/models/trpakov/vit-face-expression"
 
         headers = {
@@ -199,113 +201,207 @@ def analyze_image(image_bytes):
         }
 
         response = requests.post(API_URL, headers=headers, data=image_bytes, timeout=60)
+
+        response.raise_for_status()
+
         result = response.json()
 
+        if not isinstance(result, list) or len(result) == 0:
+            st.error("❌ لم يتم العثور على وجه.")
+            return None, None
+
         dominant = max(result, key=lambda x: x['score'])
+
         return result, dominant
 
     except Exception as e:
+
         st.error(f"❌ خطأ: {e}")
         return None, None
 
+
 # ==========================================================
-# 🎤 AUDIO ANALYSIS (🔥 التغيير هنا فقط)
+# 🎤 AUDIO ANALYSIS
 # ==========================================================
 def analyze_audio(audio_bytes):
 
     try:
 
-        # 1️⃣ تحويل الصوت إلى نص
         aai.settings.api_key = ASSEMBLYAI_API_KEY
 
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+
             tmp.write(audio_bytes)
             tmp_path = tmp.name
 
         config = aai.TranscriptionConfig(
-            speech_models=["universal"]
+            speech_models=["universal"],
+            sentiment_analysis=True
         )
 
         transcript = aai.Transcriber().transcribe(tmp_path, config=config)
 
+        os.remove(tmp_path)
+
         if transcript.status == aai.TranscriptStatus.error:
+
             st.error(f"❌ فشل التفريغ: {transcript.error}")
             return None, None
 
-        text = transcript.text or "لا يوجد نص."
-
-        # 2️⃣ تحليل نبرة الصوت
-        y, sr = librosa.load(tmp_path)
-
-        tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
-        energy = np.mean(librosa.feature.rms(y=y))
-
-        pitches, magnitudes = librosa.piptrack(y=y, sr=sr)
-        pitch = np.mean(pitches[magnitudes > np.median(magnitudes)])
-
-        os.remove(tmp_path)
-
-        # 3️⃣ تصنيف النبرة
-        tone = ""
-
-        tone += "سريع، " if tempo > 120 else "بطيء، "
-        tone += "طاقة عالية، " if energy > 0.02 else "طاقة منخفضة، "
-        tone += "نبرة مرتفعة (توتر/فرح)" if pitch > 150 else "نبرة منخفضة (هدوء/حزن)"
-
-        return text, tone
+        return transcript.text or "لا يوجد نص.", transcript.sentiment_analysis or []
 
     except Exception as e:
+
         st.error(f"❌ خطأ في الصوت: {e}")
         return None, None
 
+
 # ==========================================================
-# 🌍 AI DIAGNOSIS (تم تعديل بسيط فقط)
+# 🌍 AUTO LANGUAGE DIAGNOSIS
 # ==========================================================
 def generate_diagnosis(image_emotion, audio_text):
 
     try:
+
         try:
-            detected_lang = detect(audio_text)
+            detected_lang = detect(audio_text) if audio_text.strip() else "ar"
         except:
             detected_lang = "ar"
 
-        prompt = f"""
-Emotion: {image_emotion}
+        if detected_lang == "en":
 
-Speech:
+            system_msg = """
+You are an expert emotional intelligence and psychology AI analyst.
+Provide a professional emotional evaluation based on facial emotion and speech.
+Your analysis must be structured, supportive and informative.
+"""
+
+            final_prompt = f"""
+Facial Emotion Detected:
+{image_emotion}
+
+Speech Transcript:
 {audio_text}
+
+Provide a professional emotional analysis with:
+
+1. Emotional interpretation
+2. Psychological indicators:
+   Anxiety
+   Stress
+   Depression
+3. Emotional state summary
+4. Practical wellbeing recommendations
+"""
+
+        else:
+
+            system_msg = """
+أنت خبير تحليل نفسي وعاطفي باستخدام الذكاء الاصطناعي.
+قدم تحليلًا احترافيًا بناءً على تعبير الوجه والنص الصوتي.
+"""
+
+            final_prompt = f"""
+العاطفة من الصورة:
+{image_emotion}
+
+النص من الصوت:
+{audio_text}
+
+قدم تحليل يتضمن:
+
+1 تفسير الحالة العاطفية
+2 تقدير احتمالية:
+القلق
+التوتر
+الاكتئاب
+3 ملخص الحالة
+4 توصيات عملية لتحسين الحالة النفسية
 """
 
         response = client.chat.completions.create(
+
             model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7
+
+            messages=[
+                {"role": "system", "content": system_msg},
+                {"role": "user", "content": final_prompt}
+            ],
+
+            temperature=0.7,
+            max_tokens=800
         )
 
         return response.choices[0].message.content, detected_lang
 
     except Exception as e:
+
         st.error(f"❌ خطأ في OpenAI: {e}")
         return None, None
 
+
 # ==========================================================
-# 🚀 START
+# 🚀 START ANALYSIS
 # ==========================================================
 if st.button("🚀 بدء التحليل الذكي"):
 
     if image_bytes and audio_bytes:
 
+        progress = st.progress(0)
+
+        progress.progress(20)
+
         emotions, dominant = analyze_image(image_bytes)
-        text, tone = analyze_audio(audio_bytes)
 
-        diagnosis, lang = generate_diagnosis(
-            dominant["label"],
-            text + "\nTone: " + tone
-        )
+        if not emotions:
+            st.stop()
 
-        st.image(Image.open(BytesIO(image_bytes)))
-        st.write("🎤 النبرة:", tone)
-        st.write("🧠 التحليل:", diagnosis)
+        progress.progress(50)
+
+        text, sentiments = analyze_audio(audio_bytes)
+
+        if text is None:
+            st.stop()
+
+        progress.progress(70)
+
+        diagnosis, lang = generate_diagnosis(dominant["label"], text)
+
+        progress.progress(100)
+
+        st.markdown("<div class='neo-card'>", unsafe_allow_html=True)
+
+        colA, colB = st.columns(2)
+
+        with colA:
+            st.image(Image.open(BytesIO(image_bytes)), use_container_width=True)
+
+        with colB:
+
+            labels = [e["label"] for e in emotions]
+            scores = [e["score"] for e in emotions]
+
+            fig = go.Figure([go.Bar(x=labels, y=scores)])
+
+            fig.update_layout(
+                title="تحليل تعابير الوجه",
+                template="plotly_dark"
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        st.markdown("<div class='neo-card'>", unsafe_allow_html=True)
+
+        st.subheader("📊 التشخيص النهائي")
+
+        st.info(f"🌍 اللغة المكتشفة: {'العربية' if lang == 'ar' else 'English'}")
+
+        st.write(diagnosis)
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
     else:
+
         st.warning("⚠ يرجى إدخال صورة وصوت أولاً.")
